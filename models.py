@@ -1,22 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-
-# we first create an SQLAchemy object and then configure the application later to support it
-db = SQLAlchemy()
-
-# Creating function to do following:
-# 1. connect app to local postgres database
-# 2. bind app to the SQLAlchemy 
-# # linking flask migrate to our app and database
-
-
-
-def bind_app_to_db(app):
-  app.config.from_object('config')
-  db.app = app
-  db.init_app(app)
-  migrate = Migrate(app, db)
-  return db
+from app import db
 
 #----------------------------------------------------------------------------#
 # Models.

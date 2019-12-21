@@ -8,20 +8,27 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
-from models import bind_app_to_db, Venue, Artist
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
+# Creating an unconfigured Flask-SQLAlchemy instance
+# we first create an SQLAchemy object and then configure the application later to support it
+db = SQLAlchemy()
 
 app = Flask(__name__)
+app.config.from_object('config') # connect app to a local postgresql database
 moment = Moment(app)
+db = SQLAlchemy(app) # initializing the instance with the app context
+migrate = Migrate(app, db) # linking flask migrate to our app and database
 
-# TODO: connect to a local postgresql database
-db = bind_app_to_db(app)
+#tip:https://stackoverflow.com/questions/41828711/flask-blueprint-sqlalchemy-cannot-import-name-db-into-moles-file
+from models import Venue, Artist
 
 # db.create_all()
 
