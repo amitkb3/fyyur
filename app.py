@@ -28,7 +28,7 @@ db = SQLAlchemy(app) # initializing the instance with the app context
 migrate = Migrate(app, db) # linking flask migrate to our app and database
 
 #tip:https://stackoverflow.com/questions/41828711/flask-blueprint-sqlalchemy-cannot-import-name-db-into-moles-file
-from models import Venue, Artist
+from models import Venue, Artist, Show
 
 # db.create_all()
 
@@ -62,27 +62,24 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  areas = db.session.query(Venue.city, Venue.state).distinct()
+  data = []
+  for venue in areas:
+    venue = dict(zip(('city', 'state'), venue))
+    venue['venues'] = []
+    query = db.session.query(Venue).filter_by(city=venue['city'], state= venue['state']).all()
+    for venue_data in query:
+      upcoming_shows = db.session.query(Show).filter(
+        (Show.venue_id == venue_data.id) &
+        (Show.start_time > datetime.now().strftime('%Y-%m-%d %H:%S:%M'))
+        ).all()
+      venues_data = {
+        'id': venue_data.id,
+        'name': venue_data.name,
+        'num_upcoming_shows': len(upcoming_shows)
+      }
+      venue['venues'].append(venues_data)
+    data.append(venue)
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
