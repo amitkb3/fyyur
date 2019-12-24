@@ -74,6 +74,31 @@
 		{% endfor %}
 	</div>
 </section>
+<section>
+	<button type="submit" 
+				 onclick="deleteClickHandler(this)"
+				 data-id="{{ venue.id }}"
+				 class="btn btn-primary btn-lg"
+				 style="width: 200px;"
+	>
+		Delete Venue
+	</button>
+</section>
+<script>
+	function deleteClickHandler(e) {
+		console.log('clicked')
+		const venueId = e.dataset.id;
+		fetch('/venues/' + venueId, {
+			method: 'DELETE'
+		})
+		.then(function () {
+			window.location.href = `/venues`;
+		})
+		.catch(function (e) {
+			console.log('error', e)
+		})
 
+	}
+</script>
 {% endblock %}
 
