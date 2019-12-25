@@ -304,29 +304,67 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
+  form = ArtistForm(request.form)
   artist = db.session.query(Artist).filter(Artist.id == artist_id).first()
-  form = ArtistForm(obj=artist)
-  # artist={
-  #   "id": 4,
-  #   "name": "Guns N Petals",
-  #   "genres": ["Rock n Roll"],
-  #   "city": "San Francisco",
-  #   "state": "CA",
-  #   "phone": "326-123-5000",
-  #   "website": "https://www.gunsnpetalsband.com",
-  #   "facebook_link": "https://www.facebook.com/GunsNPetals",
-  #   "seeking_venue": True,
-  #   "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-  #   "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  # }
-  # TODO: populate form with fields from artist with ID <artist_id>
+
+  #set active placeholders
+  form.name.process_data(artist.name)
+  form.city.process_data(artist.city)
+  form.state.process_data(artist.state)
+  form.phone.process_data(artist.phone)
+
+  # tip: https://stackoverflow.com/questions/5519729/wtforms-how-to-select-options-in-selectmultiplefield
+
+  # For SelectMultipleField we need data as a list
+  # in database its saved as a string 
+  # and is separated by comma and has open/close beaces
+  genres = artist.genres.replace("{", "")
+  genres = genres.replace("}", "")
+  genres = genres.split(",")
+  form.genres.process_data(genres)
+  form.image_link.process_data(artist.image_link)
+  form.facebook_link.process_data(artist.facebook_link)
+  form.website.process_data(artist.website)
+  # seeking venue is saved in database as True/False
+  # One form its represented as Yes/No
+  if (artist.seeking_venue == True):
+    form.seeking_venue.process_data("Yes")
+  else:
+    form.seeking_venue.process_data("No")
+
+  form.seeking_description.process_data(artist.seeking_description) 
+
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
-
+  try:
+    form = ArtistForm()
+    artist = session.query(Artist).filter(Artist.id == artist_id).first()
+    # updating values from form input
+    artist.name = form.name.data
+    artist.city = form.city.data
+    artist.state = form.state.data
+    artist.phone = form.phone.data
+    artist.genres = form.genres.data
+    artist.image_link = form.image_link.data
+    artist.facebook_link = form.facebook_link.data
+    artist.website = form.website.data
+    if form.seeking_venue.data == 'Yes':
+      artist.seeking_venue = True
+    else:
+      artist.seeking_venue = False
+    artist.seeking_description = form.seeking_description.data
+    db.session.commit()
+    # on successful db insert, flash success
+    flash('Artist ' + request.form['name'] + ' was successfully updated!')
+  except:
+    db.session.rollback()
+    # on successful db insert, flash success
+    flash('An error occured. Artist ' + request.form['name'] + ' could not be updated.')
+  finally:
+    db.session.close()
+  # return back to artist page
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
