@@ -4,6 +4,7 @@
 import json
 import dateutil.parser
 import babel
+import sys
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -340,7 +341,7 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   try:
     form = ArtistForm()
-    artist = session.query(Artist).filter(Artist.id == artist_id).first()
+    artist = db.session.query(Artist).filter(Artist.id == artist_id).first()
     # updating values from form input
     artist.name = form.name.data
     artist.city = form.city.data
@@ -359,6 +360,7 @@ def edit_artist_submission(artist_id):
     # on successful db insert, flash success
     flash('Artist ' + request.form['name'] + ' was successfully updated!')
   except:
+    print(sys.exc_info())
     db.session.rollback()
     # on successful db insert, flash success
     flash('An error occured. Artist ' + request.form['name'] + ' could not be updated.')
