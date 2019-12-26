@@ -371,22 +371,34 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
-  # TODO: populate form with values from venue with ID <venue_id>
+  form = VenueForm(request.form)
+    
+  venue = db.session.query(Venue).filter(Venue.id == venue_id).first()
+
+  #set active placeholders
+  form.name.process_data(venue.name)
+  # tip: https://stackoverflow.com/questions/5519729/wtforms-how-to-select-options-in-selectmultiplefield
+
+  # For SelectMultipleField we need data as a list
+  # In database venue.genres is already a list 
+  form.genres.process_data(venue.genres)
+  form.address.process_data(venue.address)
+  form.city.process_data(venue.city)
+  form.state.process_data(venue.state)
+  form.phone.process_data(venue.phone)
+  form.website.process_data(venue.website)
+  form.facebook_link.process_data(venue.facebook_link)
+    
+  # seeking venue is saved in database as True/False
+  # One form its represented as Yes/No
+  if (venue.seeking_talent == True):
+    form.seeking_talent.process_data("Yes")
+  else:
+    form.seeking_talent.process_data("No")
+
+  form.seeking_description.process_data(venue.seeking_description)
+  form.image_link.process_data(venue.image_link) 
+  
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
