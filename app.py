@@ -51,6 +51,7 @@ app.jinja_env.filters['datetime'] = format_datetime
 # Controllers.
 #----------------------------------------------------------------------------#
 
+# home page route handle
 @app.route('/')
 def index():
   return render_template('pages/home.html')
@@ -59,8 +60,10 @@ def index():
 #  Venues
 #  ----------------------------------------------------------------
 
+# Venue page route handler
 @app.route('/venues')
 def venues():
+  # get distinct city and state combination
   areas = db.session.query(Venue.city, Venue.state).distinct()
   data = []
   for venue in areas:
@@ -81,11 +84,10 @@ def venues():
     data.append(venue)
   return render_template('pages/venues.html', areas=data);
 
+# venue Search route handle
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+  # get user search term
   search_term = request.form.get('search_term', '')
   results = db.session.query(Venue).filter(Venue.name.ilike(f'%{search_term}%')).all()
   response = {}
@@ -104,10 +106,9 @@ def search_venues():
   
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
+# Route handler for individual venue pages
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
   venue = db.session.query(Venue).filter(Venue.id == venue_id).first()
   data = {}
   data['id'] = venue.id
@@ -158,11 +159,13 @@ def show_venue(venue_id):
 #  Create Venue
 #  ----------------------------------------------------------------
 
+# Get the Create Venue form
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
+# Post handler for Venue Creation
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   try:
@@ -199,6 +202,7 @@ def create_venue_submission():
     db.session.close()
   return render_template('pages/home.html')
 
+# route handler for deleting a gien Venue
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
   try:
@@ -218,6 +222,8 @@ def delete_venue(venue_id):
 
 #  Artists
 #  ----------------------------------------------------------------
+
+# Route handler for Artists overview page
 @app.route('/artists')
 def artists():
   artists = db.session.query(Artist).all()
@@ -230,11 +236,9 @@ def artists():
    
   return render_template('pages/artists.html', artists=data)
 
+# Artist Search route handler
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-  # search for "band" should return "The Wild Sax Band".
   search_term = request.form.get('search_term', '')
   results = db.session.query(Artist).filter(Artist.name.ilike(f'%{search_term}%')).all()
   response = {}
@@ -252,10 +256,9 @@ def search_artists():
     response['data'].append(artist_data)
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
+# Route handler for individual artist pages
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
   artist = db.session.query(Artist).filter(Artist.id == artist_id).first()
   data = {}
   data['id'] = artist.id
@@ -303,6 +306,8 @@ def show_artist(artist_id):
 
 #  Update
 #  ----------------------------------------------------------------
+
+# Route handler for artist edit form Get
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm(request.form)
@@ -337,6 +342,7 @@ def edit_artist(artist_id):
 
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
+# Edit artist POST handler
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   try:
@@ -369,6 +375,7 @@ def edit_artist_submission(artist_id):
   # return back to artist page
   return redirect(url_for('show_artist', artist_id=artist_id))
 
+# Route handler for Venue edit form GET
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm(request.form)
@@ -401,6 +408,7 @@ def edit_venue(venue_id):
   
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
+# Venue edit POST handler
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   
@@ -439,11 +447,13 @@ def edit_venue_submission(venue_id):
 #  Create Artist
 #  ----------------------------------------------------------------
 
+# Artist creation GET route handler
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
   form = ArtistForm()
   return render_template('forms/new_artist.html', form=form)
 
+# Artist Creation POST handler
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   
@@ -485,6 +495,7 @@ def create_artist_submission():
 #  Shows
 #  ----------------------------------------------------------------
 
+# Route handler for shows page
 @app.route('/shows')
 def shows():
   
@@ -503,6 +514,7 @@ def shows():
    
   return render_template('pages/shows.html', shows=data)
 
+# Route handler for rendering Create Shows page
 @app.route('/shows/create')
 def create_shows():
   # renders form. do not touch.
@@ -532,6 +544,8 @@ def create_show_submission():
     db.session.close()
 
   return render_template('pages/home.html')
+
+# error handlers
 
 @app.errorhandler(404)
 def not_found_error(error):
